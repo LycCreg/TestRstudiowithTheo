@@ -64,7 +64,28 @@ revised_data_set <- import_fresh |>
   rename(sub_category = description.x,
          category = description.y) |> 
   # Change order of variables
-  select(hs_category_code, tariff_code, category, sub_category, origin, weight_kg, cif_value_ecd)
+  select(hs_category_code, tariff_code, category, sub_category, origin, weight_kg, cif_value_ecd) %>% 
+  # Reclassify commodities 
+  mutate(classification = case_when(
+    hs_category_code %in% c("0201", "0202") ~ "Cattle",
+    hs_category_code %in% c("0203") ~ "Pigs",
+    hs_category_code %in% c("0204") ~ "Sheep or goats",
+    hs_category_code %in% c("0207") ~ "Poultry",
+    hs_category_code %in% c("0210", "0208", "0206", "0209") ~ "Other meat",
+    hs_category_code %in% c("0701") ~ "White potatoes",
+    hs_category_code %in% c("0703") ~ sub_category,
+    grepl("^03", hs_category_code) ~ "Fish",
+    grepl("beans|peas", sub_category, ignore.case = TRUE) & !grepl("blend", sub_category) ~ "Peas and beans",
+    grepl("^07", hs_category_code)  ~ "Vegetables",
+    hs_category_code %in% c("0801", "0802") ~ "Nuts",
+    hs_category_code %in% c("0804", "0806", "0807", "0808", 
+                              "0809", "0810", "0811", "0812", "0813", "0814") ~ "Fruits",
+    hs_category_code == "0901" ~ "Coffee",
+    hs_category_code == "0902" ~ "Tea",
+    hs_category_code == "0904" ~ "Peppers (processed)",
+    hs_category_code %in% c("0905", "0906", "0907", "0908", 
+                              "0909", "0910") ~ "Spices"
+  ))
 ```
 
 ```{r}
