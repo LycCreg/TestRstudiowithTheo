@@ -36,7 +36,7 @@ library(here)
 
 # Importing fresh commodity import data
 import_fresh <- read_excel(here("00_raw_data", "ASYVUDA", "import fresh.xls"), 
-    sheet = "JULY 2022- JUNE 2023") %>%
+    sheet = "JULY 2022- JUNE 2023") |> 
   # Standardizing the variable names for use in R
   clean_names() |> 
   # Correct variable names
@@ -64,7 +64,7 @@ revised_data_set <- import_fresh |>
   rename(sub_category = description.x,
          category = description.y) |> 
   # Change order of variables
-  select(hs_category_code, tariff_code, category, sub_category, origin, weight_kg, cif_value_ecd) %>% 
+  select(hs_category_code, tariff_code, category, sub_category, origin, weight_kg, cif_value_ecd) |> 
   # Reclassify commodities 
   mutate(classification = case_when(
     hs_category_code %in% c("0201", "0202") ~ "Cattle",
@@ -92,7 +92,7 @@ revised_data_set <- import_fresh |>
 #| label: Plot
 #| echo: false
 
-ggplot(revised_data_set, aes(x = category, y = weight_kg)) + 
+ggplot(revised_data_set, aes(x = classification, y = weight_kg)) + 
   geom_col() +
   coord_flip()
 ```
