@@ -14,3 +14,65 @@ execute:
   message: false
   warning: false
 ---
+
+```{r}
+#| label: Packages
+#| echo: false
+  library(tidyverse)
+  library(readxl)
+  library(janitor)
+  library(scales)
+  library(knitr)
+library(here)
+```
+
+# Introduction
+
+# Results 
+
+```{r}
+#| label: Import-Data
+#| echo: false 
+
+# Importing fresh commodity import data
+import_fresh <- read_excel(here("00_raw_data", "ASYVUDA", "import fresh.xls"), 
+    sheet = "JULY 2022- JUNE 2023") %>%
+  # Standardizing the variable names for use in R
+  clean_names() |> 
+  # Correct variable names
+  rename(origin = orgin) |> 
+  # Converting character variables to factor 
+  mutate(across(c(tariff_code, description, origin), as.factor)) |> 
+  mutate(hs_category_code = str_sub(tariff_code, 1, 4))
+```
+
+```{r}
+#| label: Import-HS-Codes-Data
+#| echo: false 
+
+hs_codes_list <- read_delim(here("00_raw_data", "ASYVUDA", "hs_codes_list.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+#| label: Merged-Data
+#| echo: false 
+
+# Merging Import Fresh Data with HS Code Data
+revised_data_set <- import_fresh |> 
+  left_join(hs_codes_list, by = join_by(hs_category_code)) |> 
+  rename(sub_category = description.x,
+         category = description.y) |> 
+  # Change order of variables
+  select(hs_category_code, tariff_code, category, sub_category, origin, weight_kg, cif_value_ecd)
+```
+
+```{r}
+#| label: Plot
+#| echo: false
+
+ggplot(revised_data_set, aes(x = category, y = weight_kg)) + 
+  geom_col() +
+  coord_flip()
+```
+
